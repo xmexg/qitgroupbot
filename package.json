@@ -1,0 +1,26 @@
+{
+  "name": "mygroupbot",
+  "version": "1.0.0",
+  "description": "qit专属群管机器人",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "node index.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/xmexg/qitgroupbot.git"
+  },
+  "author": "looom",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/xmexg/qitgroupbot/issues"
+  },
+  "homepage": "https://github.com/xmexg/qitgroupbot#readme",
+  "dependencies": {
+    "canvas": "^3.1.0",
+    "dotenv": "^16.5.0",
+    "https-proxy-agent": "^7.0.6",
+    "telegraf": "^4.16.3"
+  }
+}
