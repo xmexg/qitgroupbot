@@ -19,8 +19,11 @@
   "homepage": "https://github.com/xmexg/qitgroupbot#readme",
   "dependencies": {
     "canvas": "^3.1.0",
+    "captchapng": "^0.0.1",
     "dotenv": "^16.5.0",
     "https-proxy-agent": "^7.0.6",
+    "sharp": "^0.34.1",
+    "svg-captcha": "^1.4.0",
     "telegraf": "^4.16.3"
   }
 }

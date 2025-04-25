@@ -5,6 +5,9 @@ const { Telegraf,Markup } = require('telegraf')
 const { message } = require('telegraf/filters');
 const { HttpsProxyAgent } = require('https-proxy-agent')
 const { createCanvas } = require('canvas')
+const captchapng = require('captchapng');
+const svgCaptcha = require('svg-captcha')
+const sharp = require('sharp');
 
 // 获取当前环境变量
 const env = process.env.NODE_ENV || 'development'
@@ -66,6 +69,66 @@ function generateCaptcha() {
     }
 }
 
+// 用captchapng生成验证码
+function generateCaptchaPng() {
+    const answer = parseInt(Math.random() * 9000 + 1000);
+    const p = new captchapng(150, 50, answer)
+    p.color(255, 255, 255, 255);  // 背景色
+    p.color(58, 182, 189, 255); // 字体色
+    const imgBase64 = p.getBase64();
+    const imgBuffer = Buffer.from(imgBase64, 'base64');
+    const options = [answer]
+    while (options.length < 4) {
+        const fake = parseInt(Math.random() * 9000 + 1000);
+        if (!options.includes(fake)) options.push(fake)
+    }
+
+    options.sort(() => Math.random() - 0.5)
+    return {
+        imageBuffer: imgBuffer,
+        answer,
+        options
+    }
+}
+
+// 用svg-captcha生成验证码
+async function generateCaptchaSvg() {
+    const captcha = svgCaptcha.create({
+        size: 4,
+        ignoreChars: '0o1il',
+        noise: 2,
+        color: true,
+        background: '#ffffff'
+    });
+
+    const svg = captcha.data;
+    const answer = captcha.text.toUpperCase();
+
+    const pngBuffer = await sharp(Buffer.from(svg)).png().toBuffer();
+
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+    const options = [answer];
+    while (options.length < 4) {
+        const fake = Array.from({ length: 4 }, () => chars[Math.floor(Math.random() * chars.length)]).join('');
+        if (!options.includes(fake)) options.push(fake);
+    }
+
+    options.sort(() => Math.random() - 0.5);
+
+    return {
+        imageBuffer: pngBuffer,
+        answer,
+        options
+    };
+}
+
+// 判断用户是否为管理员
+async function isAdmin(userId, chatId) {
+    return bot.telegram.getChatMember(chatId, userId).then((member) => {
+        return member.status === 'administrator' || member.status === 'creator'
+    }).catch(() => false)
+}
+
 // 新人加入触发
 bot.on('new_chat_members', async (ctx) => {
     const chatId = ctx.chat.id
@@ -80,7 +143,7 @@ bot.on('new_chat_members', async (ctx) => {
             continue
         }
 
-        const { imageBuffer, answer, options } = generateCaptcha()
+        const { imageBuffer, answer, options } = await generateCaptchaSvg()
 
         const inlineKeyboard = Markup.inlineKeyboard(
             options.map(opt => Markup.button.callback(opt, `verify_${userId}_${opt}_${chatId}`)),
